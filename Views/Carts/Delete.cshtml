@@ -1,0 +1,47 @@
+﻿@model ShoppingList.Models.Cart
+
+@{
+    ViewData["Title"] = "Delete";
+
+      var numOfItems = Model.Items?.Count() ?? 0; // if cart is empty show 0 items
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>Cart</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.CreateDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.CreateDate)
+        </dd>
+        <dt class="col-sm-2">
+            <p>Numbers of Items</p>
+        </dt>
+        <dd class="col-sm-10">
+            <p> @numOfItems </p>
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Done)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Done)
+        </dd>
+    </dl>
+    
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>
