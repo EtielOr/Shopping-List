@@ -1,0 +1,72 @@
+﻿@model ShoppingList.Models.Cart
+
+
+@{
+    ViewData["Title"] = "Index";
+
+    Item newItem = new Item(); // to pass the card data to partail view
+    newItem.CartID = Model.Id;
+}
+
+<h1> @Html.DisplayFor(model => model.Title) </h1>
+<p> Created By: @Html.DisplayFor(model => model.CreateDate) </p>
+
+
+@await Html.PartialAsync("_additems.cshtml",newItem)
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Items.FirstOrDefault().Quantity)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Done)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>
+                    @if (item.Done)
+                    {
+                         <del> @Html.DisplayFor(modelItem => item.Name) </del>
+                    }
+                    else
+                    {
+                          @Html.DisplayFor(modelItem => item.Name)
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Quantity)
+                </td>
+                <td>
+                    <input type="checkbox" checked="@item.Done"
+                           onclick="foo(@item.Id,'@item.Done')" />
+                </td>
+                <td>
+|
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

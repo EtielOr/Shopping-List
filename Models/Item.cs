@@ -14,7 +14,7 @@ namespace ShoppingList.Models
 
         [Required]
         [StringLength(50, MinimumLength = 3)]
-        public int Name { get; set; }
+        public string Name { get; set; }
 
         [Required]
         [Range(1,10000000)]

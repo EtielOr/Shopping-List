@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -37,6 +38,83 @@ namespace ShoppingList
 
 
             return View(await userCarts.ToListAsync());
+        }
+
+
+        // GET: Carts/5/Items
+        [HttpGet("Carts/{cartId}/Items")]
+        public async Task<IActionResult> Items(int? cartId)
+        {
+            if (cartId == null)
+            {
+                return NotFound();
+            }
+
+            var cart = await _context.Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(m => m.Id == cartId);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            var userId = _userManager.GetUserId(User);
+
+            if (cart.OwnerId != userId)
+            {
+                return Unauthorized("No Unauthorized to view this data");
+            }
+
+            return View(cart);
+        }
+
+        [HttpPost("Carts/{cartId}/Items")]
+        public async Task<IActionResult> AddItem(int? cartId,Item item)
+        {
+            if (cartId == null)
+            {
+                return NotFound();
+            }
+
+            var cart = await _context.Carts.Include(c => c.Items)
+                .FirstOrDefaultAsync(m => m.Id == cartId);
+
+            if (cart == null)
+            {
+                return NotFound();
+            }
+
+            var userId = _userManager.GetUserId(User);
+
+            if (cart.OwnerId != userId)
+            {
+                return Unauthorized("No Unauthorized to view this data");
+            }
+
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    cart.Items.Add(item);
+
+                    _context.Update(cart);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CartExists(cart.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return Redirect("/Carts/" + cartId + "/Items");
+            }
+            return Redirect("/Carts/" + cartId + "/Items");
         }
 
         // GET: Carts/Details/5
@@ -85,6 +163,7 @@ namespace ShoppingList
                 cart.Done = false;
                 cart.CreateDate = DateTime.UtcNow;
                 cart.OwnerId = _userManager.GetUserId(User);
+                cart.Items = new Collection<Item>();
                 _context.Add(cart);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
