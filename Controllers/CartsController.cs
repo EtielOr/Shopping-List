@@ -37,85 +37,9 @@ namespace ShoppingList
                             select c;
 
 
-            return View(await userCarts.ToListAsync());
+            return View(await userCarts.Include(p => p.Items).ToListAsync());
         }
 
-
-        // GET: Carts/5/Items
-        [HttpGet("Carts/{cartId}/Items")]
-        public async Task<IActionResult> Items(int? cartId)
-        {
-            if (cartId == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.Carts.Include(c => c.Items)
-                .FirstOrDefaultAsync(m => m.Id == cartId);
-
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-            var userId = _userManager.GetUserId(User);
-
-            if (cart.OwnerId != userId)
-            {
-                return Unauthorized("No Unauthorized to view this data");
-            }
-
-            return View(cart);
-        }
-
-        [HttpPost("Carts/{cartId}/Items")]
-        public async Task<IActionResult> AddItem(int? cartId,Item item)
-        {
-            if (cartId == null)
-            {
-                return NotFound();
-            }
-
-            var cart = await _context.Carts.Include(c => c.Items)
-                .FirstOrDefaultAsync(m => m.Id == cartId);
-
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-            var userId = _userManager.GetUserId(User);
-
-            if (cart.OwnerId != userId)
-            {
-                return Unauthorized("No Unauthorized to view this data");
-            }
-
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    cart.Items.Add(item);
-
-                    _context.Update(cart);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CartExists(cart.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return Redirect("/Carts/" + cartId + "/Items");
-            }
-            return Redirect("/Carts/" + cartId + "/Items");
-        }
 
         // GET: Carts/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -126,7 +50,7 @@ namespace ShoppingList
                 return NotFound();
             }
 
-            var cart = await _context.Carts
+            var cart = await _context.Carts.Include(p => p.Items)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (cart == null)
@@ -179,7 +103,7 @@ namespace ShoppingList
                 return NotFound();
             }
 
-            var cart = await _context.Carts.FindAsync(id);
+            var cart = await _context.Carts.Include(p => p.Items).FirstAsync(m => m.Id == id);
 
             if (cart == null)
             {
@@ -210,7 +134,10 @@ namespace ShoppingList
 
             var userId = _userManager.GetUserId(User);
 
-            if (cart.OwnerId != userId)
+            var cartToUpdate = await _context.Carts.FindAsync(id);
+
+
+            if (cartToUpdate.OwnerId != userId)
             {
                 return Unauthorized("No Unauthorized to view this data");
             }
@@ -220,7 +147,9 @@ namespace ShoppingList
             {
                 try
                 {
-                    _context.Update(cart);
+                    cartToUpdate.Title = cart.Title;
+                    cartToUpdate.Done = cart.Done;
+                    _context.Update(cartToUpdate);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -248,7 +177,7 @@ namespace ShoppingList
                 return NotFound();
             }
 
-            var cart = await _context.Carts
+            var cart = await _context.Carts.Include(p => p.Items)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (cart == null)
@@ -313,14 +242,7 @@ namespace ShoppingList
             }
             catch(DbUpdateConcurrencyException)
             {
-                if (!CartExists(cart.Id))
-                {
-                   // return NotFound();
-                }
-                else
-                {
                     throw;
-                }
             }
             return Json(cart.Done);
         }

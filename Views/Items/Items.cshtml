@@ -12,7 +12,7 @@
 <p> Created By: @Html.DisplayFor(model => model.CreateDate) </p>
 
 
-@await Html.PartialAsync("_additems.cshtml",newItem)
+@await Html.PartialAsync("_additems.cshtml", newItem)
 
 <table class="table">
     <thead>
@@ -48,23 +48,42 @@
                 </td>
                 <td>
                     <input type="checkbox" checked="@item.Done"
-                           onclick="foo(@item.Id,'@item.Done')" />
+                           onclick="ChangeItemStatus(@item.Id,'@item.Done')" />
                 </td>
                 <td>
-|
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    <form asp-action="Delete">
+                        <input type="hidden" value="@item.Id" name="itemId"  />
+                        <input type="hidden"  value="@Model.Id" name="cartId" />
+                        <input type="submit" value="Delete" class="btn-danger" />
+                    </form>
+                   @** <a asp-action="Delete" asp-protocol="post" asp-route-id="@item.Id">Delete</a> *@
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-
+<script>
+    function ChangeItemStatus(itemId, doneStatue) {
+       $.ajax({
+           type: "POST",
+           url: `Items/ItemStatus/${itemId}`,
+           data: { id: itemId, isDone: doneStatue },
+           contentType: "application/json",
+           success: function (sccuess) {
+               location.reload(true);
+        },
+           error: function (error) {
+               console.error(error);
+            }
+        });
+    }
+</script>
 
 
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" asp-controller="Carts">Back to List</a>
 </div>
 
 @section Scripts {
